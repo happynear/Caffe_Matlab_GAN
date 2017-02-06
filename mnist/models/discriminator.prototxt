@@ -1,0 +1,282 @@
+name: "Generator"
+force_backward: true
+layer {
+  name: "mnist"
+  type: "Data"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    mean_value: 128
+    scale: 0.0078125
+  }
+  data_param {
+    source: "mnist_train_lmdb"
+    batch_size: 64 
+    backend: LMDB
+  }
+}
+layer {
+  name: "dis_input"
+  type: "Input"
+  top: "dis_input"
+  input_param { shape: { dim: 64 dim: 1 dim: 28 dim: 28 } }
+}
+layer {
+  name: "concat_input"
+  type: "Concat"
+  bottom: "data"
+  bottom: "dis_input"
+  top: "concat_input"
+  concat_param {
+    axis: 0
+  }
+}
+layer {
+  name: "shutup"
+  type: "Silence"
+  bottom: "label"
+}
+layer {
+  name: "dis_conv_d1"
+  type: "Convolution"
+  bottom: "dis_input"
+  top: "dis_conv_d1"
+  param {
+    lr_mult: 1
+	decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+	decay_mult: 0
+  }
+  convolution_param {
+    num_output: 64
+    pad: 2
+    kernel_size: 5
+    stride: 2
+    
+    weight_filler {
+      type: "gaussian"
+      std: 0.002
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "batch_norm_d1"
+  type: "BatchNorm"
+  bottom: "dis_conv_d1"
+  top: "dis_conv_d1"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "scale_batch_d1"
+  type: "Scale"
+  bottom: "dis_conv_d1"
+  top: "dis_conv_d1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+layer {
+  name: "relu_d1"
+  type: "ReLU"
+  bottom: "dis_conv_d1"
+  top: "dis_conv_d1"
+  relu_param {
+    negative_slope: 0.2
+  }
+}
+layer {
+  name: "dis_conv_d2"
+  type: "Convolution"
+  bottom: "dis_conv_d1"
+  top: "dis_conv_d2"
+  param {
+    lr_mult: 1
+	decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+	decay_mult: 0
+  }
+  convolution_param {
+    num_output: 128
+    pad: 2
+    kernel_size: 5
+    stride: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.002
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "batch_norm_d2"
+  type: "BatchNorm"
+  bottom: "dis_conv_d2"
+  top: "dis_conv_d2"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "scale_batch_d2"
+  type: "Scale"
+  bottom: "dis_conv_d2"
+  top: "dis_conv_d2"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+layer {
+  name: "relu_d2"
+  type: "ReLU"
+  bottom: "dis_conv_d2"
+  top: "dis_conv_d2"
+  relu_param {
+    negative_slope: 0.2
+  }
+}
+layer {
+  name: "ip4"
+  type: "InnerProduct"
+  bottom: "dis_conv_d2"
+  top: "ip4"
+  param {
+    lr_mult: 1
+	decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+	decay_mult: 0
+  }
+  inner_product_param{
+    num_output: 100
+    weight_filler {
+      type: "gaussian"
+      std: 0.002
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "batch_norm_ip4"
+  type: "BatchNorm"
+  bottom: "ip4"
+  top: "ip4"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "scale_batch_ip4"
+  type: "Scale"
+  bottom: "ip4"
+  top: "ip4"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+layer {
+  name: "relu_ip4"
+  type: "ReLU"
+  bottom: "ip4"
+  top: "ip4"
+  relu_param {
+    negative_slope: 0.2
+  }
+}
+
+layer {
+  name: "score"
+  type: "InnerProduct"
+  bottom: "ip4"
+  top: "score"
+  param {
+    lr_mult: 1
+	decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+	decay_mult: 0
+  }
+  inner_product_param{
+    num_output: 1
+    
+    weight_filler {
+      type: "gaussian"
+      std: 0.002
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}

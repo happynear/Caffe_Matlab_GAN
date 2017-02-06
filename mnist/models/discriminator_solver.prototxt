@@ -1,0 +1,15 @@
+net: "models/discriminator_mlp.prototxt"
+base_lr: 0.0005
+momentum: 0.0
+lr_policy: "inv"
+gamma: 0.0001
+power: 0.75
+display: 100
+max_iter: 1
+snapshot: 5000
+snapshot_prefix: "models/iter_"
+solver_mode: GPU
+type: "RMSProp"
+rms_decay: 0.98
+clamp_weights_lower: -0.01
+clamp_weights_upper: 0.01
